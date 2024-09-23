@@ -1,0 +1,176 @@
+
+  <script src="img/typescript.js"></script>
+  <script src="script.js"></script>
+</body>
+</html><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learner Result Slip Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .result-slip {
+            border: 1px solid #000;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .result-slip h2 {
+            text-align: center;
+        }
+        .result-slip table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .result-slip table, .result-slip th, .result-slip td {
+            border: 1px solid #000;
+        }
+        .result-slip th, .result-slip td {
+            padding: 8px;
+            text-align: center;
+        }
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Learner Result Slip Generator</h1>
+        <form id="resultForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required><br><br>
+            <label for="school">School:</label>
+            <input type="text" id="school" name="school" required><br><br>
+            <label for="assessmentNumber">Assessment Number:</label>
+            <input type="text" id="assessmentNumber" name="assessmentNumber" required><br><br>
+            <label for="level">Level:</label>
+            <input type="text" id="level" name="level" required><br><br>
+            <label for="year">Year:</label>
+            <input type="text" id="year" name="year" required><br><br>
+            <label for="term">Term:</label>
+            <input type="text" id="term" name="term" required><br><br>
+            <label for="english">English:</label>
+            <input type="number" id="english" name="english" required><br><br>
+            <label for="kiswahili">Kiswahili:</label>
+            <input type="number" id="kiswahili" name="kiswahili" required><br><br>
+            <label for="mathematics">Mathematics:</label>
+            <input type="number" id="mathematics" name="mathematics" required><br><br>
+            <label for="science">Science/Technology:</label>
+            <input type="number" id="science" name="science" required><br><br>
+            <label for="arts">Creative Arts:</label>
+            <input type="number" id="arts" name="arts" required><br><br>
+            <label for="socialStudies">Social Studies:</label>
+            <input type="number" id="socialStudies" name="socialStudies" required><br><br>
+            <button type="button" onclick="generatePDF()">Generate PDF</button>
+        </form>
+        <div id="resultSlip" class="result-slip" style="display: none;">
+            <h2>Result Slip</h2>
+            <p id="learnerDetails"></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Learning Area</th>
+                        <th>Marks</th>
+                        <th>Rate</th>
+                    </tr>
+                </thead>
+                <tbody id="marksTable">
+                </tbody>
+            </table>
+            <p id="totalMarks"></p>
+            <p id="averageMarks"></p>
+            <p id="finalRate"></p>
+            <a id="downloadLink" class="download-btn" href="#">Download PDF</a>
+        </div>
+    </div>
+
+    <script>
+        function calculateRate(marks) {
+            if (marks >= 75) return 4;
+            if (marks >= 50) return 3;
+            if (marks >= 30) return 2;
+            return 1;
+        }
+
+        function calculateFinalRate(totalMarks) {
+            if (totalMarks >= 450) return { rate: 4, description: "Exceeding Expectations" };
+            if (totalMarks >= 300) return { rate: 3, description: "Meeting Expectations" };
+            if (totalMarks >= 150) return { rate: 2, description: "Approaching Expectations" };
+            return { rate: 1, description: "Below Expectation" };
+        }
+
+        function generatePDF() {
+            const form = document.getElementById('resultForm');
+            const resultSlip = document.getElementById('resultSlip');
+            const learnerDetails = document.getElementById('learnerDetails');
+            const marksTable = document.getElementById('marksTable');
+            const totalMarksElem = document.getElementById('totalMarks');
+            const averageMarksElem = document.getElementById('averageMarks');
+            const finalRateElem = document.getElementById('finalRate');
+            const downloadLink = document.getElementById('downloadLink');
+
+            const name = form.name.value;
+            const school = form.school.value;
+            const assessmentNumber = form.assessmentNumber.value;
+            const level = form.level.value;
+            const year = form.year.value;
+            const term = form.term.value;
+            const subjects = [
+                { name: 'English', marks: parseInt(form.english.value) },
+                { name: 'Kiswahili', marks: parseInt(form.kiswahili.value) },
+                { name: 'Mathematics', marks: parseInt(form.mathematics.value) },
+                { name: 'Science/Technology', marks: parseInt(form.science.value) },
+                { name: 'Creative Arts', marks: parseInt(form.arts.value) },
+                { name: 'Social Studies', marks: parseInt(form.socialStudies.value) }
+            ];
+
+            let totalMarks = 0;
+            marksTable.innerHTML = '';
+            subjects.forEach(subject => {
+                const rate = calculateRate(subject.marks);
+                totalMarks += subject.marks;
+                marksTable.innerHTML += `<tr><td>${subject.name}</td><td>${subject.marks}</td><td>${rate}</td></tr>`;
+            });
+
+            const averageMarks = totalMarks / subjects.length;
+            const finalRate = calculateFinalRate(totalMarks);
+
+            learnerDetails.innerHTML = `Name: ${name}<br>School: ${school}<br>Assessment Number: ${assessmentNumber}<br>Level: ${level}<br>Year: ${year}<br>Term: ${term}`;
+            totalMarksElem.innerHTML = `Total Marks: ${totalMarks}`;
+            averageMarksElem.innerHTML = `Average Marks: ${averageMarks.toFixed(2)}`;
+            finalRateElem.innerHTML = `Final Rate: ${finalRate.rate} (${finalRate.description})`;
+
+            resultSlip.style.display = 'block';
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.html(resultSlip, {
+                callback: function (doc) {
+                    const pdfBlob = doc.output('blob');
+                    const url = URL.createObjectURL(pdfBlob);
+                    downloadLink.href = url;
+                    downloadLink.download = `${name}_Result_Slip.pdf`;
+                },
+                x: 10,
+                y: 10
+            });
+        }
+    </script>
+</body>
+</html>
